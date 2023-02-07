@@ -3,7 +3,7 @@
 # Pacotes & Diretório ----
 library(tidyverse)
 
-setwd("~/FACUL/Semestre 8/TCC 1/dados")
+#setwd("~/FACUL/Semestre 8/TCC 1/dados")
 
 
 
@@ -83,21 +83,19 @@ sort(table(as.character(df$hora)))
 sort(table(as.character(df$dia)))
 
 
+# Dia da Semana
+sort(table(as.character(df$dia.semana)))
+
+
 # Vencedor
-aux <- df %>% group_by(vencedor) %>% count() %>% arrange(desc(n))
-barplot(aux$n[1:5], names.arg = aux$vencedor[1:5])
 sort(table(df$vencedor))
 
 
 # Mandante Placar
-ggplot(df, aes(placar.time1)) +
-  geom_bar()
 sort(table(df$placar.time1))
 
 
 # Visitante Placar
-ggplot(df, aes(placar.time2)) +
-  geom_bar()
 sort(table(df$placar.time2))
 
 
@@ -121,3 +119,72 @@ sort(table(df$arbitro))
 sort(table(df$arbitro.uf))
 
 
+
+
+
+# Gráficos -----
+
+bar.fun <- function(...){
+  aux <- df %>% group_by(...) %>% summarise(n = n()) %>% arrange(desc(n))
+  barplot(aux$n[1:5], names.arg = aux[1:5, 1] %>% unlist)
+}
+
+ggplot.fun <- function(...){
+  ggplot(df, aes(...)) +
+    geom_histogram(bins=6,fill="#D3D3D3", col=I("black")) + 
+    theme_classic() +
+    xlab("") + ylab("")
+}
+
+
+
+# Variáveis quantitativas
+
+png(filename="var_quant_top3.png", height=20, width=25, unit="cm", res=300)
+par(mfrow=c(4,1), mar=c(3,3,2,2), oma=c(3,3,2,2))
+
+# Placar Mandante
+p1 <- ggplot.fun(placar.time1) + ggtitle("Placar Mandante") +
+  theme(plot.title = element_text(hjust = 0.5)) 
+# Placar Visitante
+p2 <- ggplot.fun(placar.time2)  + ggtitle("Placar Visitante") +
+  theme(plot.title = element_text(hjust = 0.5))
+# Dia
+p3 <- ggplot.fun(dia) + ggtitle("Dia") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+grid.arrange(p1, p2, p3, ncol=1)
+dev.off()
+
+
+
+
+png(filename="hora.png", height=20, width=25, unit="cm", res=300)
+par(mfrow=c(1,1))
+
+# Hora
+aux <- df %>% group_by(hora) %>% count() #%>% arrange(desc(n))
+barplot(aux$n, names.arg = aux$hora, main = "Hora")
+
+dev.off()
+
+
+
+# Variáveis qualitativas (top 3)
+
+png(filename="var_qual_top3.png", height=30, width=25, unit="cm", res=300)
+par(mfrow=c(6,1), mar=c(3,3,2,2), oma=c(3,3,2,2))
+# Times
+bar.fun(mandante); title(main = "Times")
+# UF Times
+bar.fun(mandante.uf); title(main = "Times (UF)")
+# Dia da Semana
+bar.fun(dia.semana); title(main = "Dia da Semana")
+# Arena
+bar.fun(estadio); title(main = "Estádio")
+# Árbitro
+bar.fun(arbitro); title(main = "Árbitro")
+# UF Árbitro
+bar.fun(arbitro.uf); title(main = "Árbitro (UF)")
+
+dev.off()
